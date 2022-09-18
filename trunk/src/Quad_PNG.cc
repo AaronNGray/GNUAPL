@@ -188,7 +188,9 @@ const int bytes_per_color = (bit_depth + 7) / 8;       // 1 or 2 bytes
 
 const int bytes_per_pixel = planes * bytes_per_color;
 
-   1 && CERR << "width:         " << width  << " pixels"           << endl
+   if (verbosity & SHOW_DATA)
+      {
+        CERR << "width:         " << width  << " pixels"           << endl
              << "height:        " << height << " pixels"           << endl
              << "color_type:    " << color_type                    << endl
              << " ├─── alpha:   " << (alpha_used ? "yes" : "no")   << endl
@@ -196,6 +198,7 @@ const int bytes_per_pixel = planes * bytes_per_color;
              << " └─── palette: " << (palette_used ? "yes" : "no") << endl
              << "bit_depth:     " << bit_depth << " bits/color"    << endl
              << "planes:        " << planes                        << endl;
+      }
 
    // 2. allocate the pixel memory and scanline pointers...
    //
@@ -465,7 +468,9 @@ png_text text_ptr[1];
 
    png_set_text(png_ptr, info_ptr, text_ptr, 1);
 
-   1 && CERR << "width:         " << width  << " pixels"           << endl
+   if (verbosity & SHOW_DATA)
+      {
+        CERR << "width:         " << width  << " pixels"           << endl
              << "height:        " << height << " pixels"           << endl
              << "color_type:    " << color_type                    << endl
              << " ├─── alpha:   " << (alpha_used ? "yes" : "no")   << endl
@@ -473,6 +478,7 @@ png_text text_ptr[1];
              << " └─── palette: " << (palette_used ? "yes" : "no") << endl
              << "bit_depth:     " << bit_depth << " bits/color"    << endl
              << "planes:        " << planes                        << endl;
+      }
 
 UTF8 * RGB = new UTF8[2*B.element_count()];
 UTF8 ** row_pointers = new UTF8 *[height];
@@ -486,6 +492,20 @@ UTF8 * scanline = RGB;
              {
                const ShapeItem APL_offset = x + (y + c*height)*width;
                const double val = B.get_cravel(APL_offset).get_real_value();
+               if (val < 0.0)
+                  {
+                    MORE_ERROR() << "negative color component " << val
+                                 << " in A ⎕PNG B";
+                    DOMAIN_ERROR;
+                  }
+
+               if (val > 1.0)
+                  {
+                    MORE_ERROR() << " color component " << val
+                                 << " too large in A ⎕PNG B";
+                    DOMAIN_ERROR;
+                  }
+
                if (bit_depth == 16)
                   {
                     const uint16_t word = val * 65535.5;
@@ -663,7 +683,7 @@ const Value * B = pctx.get_APL_value().get();
 const ShapeItem width  = B->get_shape_item(2);
 const ShapeItem height = B->get_shape_item(1);
 const bool has_colors  = B->get_shape_item(0) > 2;   // RGB or RGBA
-const bool has_alpha   = B->get_shape_item(0) > (has_colors ? 1 : 3);
+const bool has_alpha   = B->get_shape_item(0) > (has_colors ? 3 : 1);
 const ShapeItem plane  = width*height;
 
 cairo_surface_t * ret =
