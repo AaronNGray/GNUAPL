@@ -48,7 +48,7 @@ enum
    SHOW_DRAW   = 4,   ///< show draw details
    SHOW_ALL    = SHOW_EVENTS | SHOW_DATA | SHOW_DRAW
 };
-static int verbosity = SHOW_NONE;
+int verbosity = SHOW_NONE;
 
 #if HAVE_GTK3 && defined( HAVE_LIBGTK_3 ) && defined(HAVE_LIBZ)
 
@@ -862,11 +862,12 @@ PNG_context * pctx = new PNG_context(B);
 
 #else // no GTK or no libz...
 
-/----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 Quad_PNG::Quad_PNG()
   : QuadFunction(TOK_Quad_PNG)
 {
    verbosity = SHOW_NONE;
+   if (verbosity)  {}   // prevent unused variable warning
 }
 //----------------------------------------------------------------------------
 Quad_PNG::~Quad_PNG()
@@ -883,7 +884,7 @@ Quad_PNG::eval_B(Value_P B) const
    SYNTAX_ERROR;
    return Token();
 }
-/-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Token
 Quad_PNG::eval_AB(Value_P A, Value_P B) const
 {
